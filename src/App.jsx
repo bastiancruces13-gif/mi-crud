@@ -34,8 +34,8 @@ function App() {
   };
 
   return (
-    <div className="App">
-      <h1>CRUD con LocalStorage</h1>
+    <div className="card-container">
+      <h1 className="main-title">CRUD con LocalStorage</h1>
       <Form 
         addOrUpdateItem={addOrUpdateItem} 
         itemToEdit={itemToEdit} 

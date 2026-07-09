@@ -20,9 +20,11 @@ function Form({ addOrUpdateItem, itemToEdit }) {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form className="crud-form" onSubmit={handleSubmit}>
       <input
         type="text"
+        className="form-input"
+        placeholder="Ingrese un valor"
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
       />
