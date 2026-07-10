@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
-function Form({ addOrUpdateItem, itemToEdit }) {
+// Cambiamos la prop recibida a 'onAdd' para que coincida con App.jsx
+function Form({ onAdd, itemToEdit }) {
   const [inputValue, setInputValue] = useState('');
 
   useEffect(() => {
@@ -13,8 +14,13 @@ function Form({ addOrUpdateItem, itemToEdit }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (inputValue.trim()) {
-      addOrUpdateItem(inputValue);
+    
+    // Le pasamos el valor directamente a App.jsx. 
+    // Quitamos el 'if' interno para que la función de App pueda lanzar el 'alert()' si está vacío.
+    onAdd(inputValue); 
+    
+    // Si no se activó la alerta (es decir, el campo era válido), limpiamos el input
+    if (inputValue.trim() !== "") {
       setInputValue('');
     }
   };
@@ -28,7 +34,10 @@ function Form({ addOrUpdateItem, itemToEdit }) {
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
       />
-      <button type="submit">{itemToEdit ? 'Actualizar' : 'Agregar'}</button>
+      {/* Añadida la clase CSS requerida del Commit 1 */}
+      <button type="submit" className="btn-submit">
+        {itemToEdit ? 'Actualizar' : 'Agregar'}
+      </button>
     </form>
   );
 }
