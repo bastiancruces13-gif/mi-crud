@@ -6,6 +6,9 @@ import './App.css';
 function App() {
   const [items, setItems] = useState([]);
   const [itemToEdit, setItemToEdit] = useState(null);
+  
+  // NUEVO ESTADO: Para guardar lo que el usuario escribe en el buscador
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Cargar desde LocalStorage al iniciar
   useEffect(() => {
@@ -13,38 +16,32 @@ function App() {
     setItems(storedItems);
   }, []);
 
-  // Guardar en LocalStorage automáticamente cuando cambien los elementos
+  // Guardar en LocalStorage automáticamente
   useEffect(() => {
     localStorage.setItem('items', JSON.stringify(items));
   }, [items]);
 
-  // REQUISITO 1: Agregar o Actualizar con Validación
+  // Agregar o Actualizar con Validación (Commit 2)
   const addOrUpdateItem = (value) => {
-    // Validación: evita campos vacíos o con puros espacios [cite: 29]
     if (!value || value.trim() === "") {
       alert("Por favor, ingresa un elemento válido. No se permiten campos vacíos.");
-      return; // Detiene la ejecución y no agrega nada [cite: 29]
+      return;
     }
 
     if (itemToEdit) {
-      // Modificar elemento existente
       setItems(items.map(item => item.id === itemToEdit.id ? { ...item, value: value.trim() } : item));
       setItemToEdit(null);
     } else {
-      // Agregar nuevo elemento
-      setItems([...items, { id: Date.now(), value: value.trim() }]);
+      // Agregamos la propiedad 'completed: false' por defecto a los nuevos items
+      setItems([...items, { id: Date.now(), value: value.trim(), completed: false }]);
     }
   };
 
-  // REQUISITO 3: Eliminar con Confirmación [cite: 31]
+  // Eliminar con Confirmación (Commit 2)
   const deleteItem = (id) => {
-    // Alerta nativa de confirmación antes de borrar [cite: 31]
     const seguro = window.confirm("¿Estás seguro de que deseas eliminar este elemento?");
-    
     if (seguro) {
       setItems(items.filter(item => item.id !== id));
-      
-      // Si se elimina el elemento que se estaba editando, cancela la edición
       if (itemToEdit && itemToEdit.id === id) {
         setItemToEdit(null);
       }
@@ -55,22 +52,65 @@ function App() {
     setItemToEdit(item);
   };
 
+  // NUEVA FUNCIÓN: Marcar/Desmarcar como completado
+  const toggleComplete = (id) => {
+    setItems(items.map(item => 
+      item.id === id ? { ...item, completed: !item.completed } : item
+    ));
+  };
+
+  // NUEVA FUNCIÓN: Borrar todos los elementos de una vez
+  const clearAllItems = () => {
+    const seguro = window.confirm("¿Estás seguro de que deseas BORRAR TODO? Esta acción no se puede deshacer.");
+    if (seguro) {
+      setItems([]);
+      setItemToEdit(null);
+    }
+  };
+
+  // FILTRADO EN TIEMPO REAL: Filtra los elementos según el buscador
+  const filteredItems = items.filter(item =>
+    item.value.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="card-container">
       <h1 className="main-title">Mi CRUD con React</h1>
       
-      {/* Pasamos la función unificada y el estado de edición al Form */}
-      <Form onAdd={addOrUpdateItem} itemToEdit={itemToEdit} />
-
-      {/* REQUISITO 2: Contador de elementos [cite: 30] */}
-      <div className="item-counter">
-        <strong>Total:</strong> {items ? items.length : 0}
+      {/* REQUISITO: Buscador en tiempo real */}
+      <div style={{ marginBottom: '20px' }}>
+        <input
+          type="text"
+          className="form-input"
+          placeholder="🔍 Buscar elemento..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
       </div>
 
+      <Form onAdd={addOrUpdateItem} itemToEdit={itemToEdit} />
+
+      <div className="item-counter" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span><strong>Total:</strong> {filteredItems.length}</span>
+        
+        {/* REQUISITO: Botón para borrar todo (solo se muestra si hay elementos) */}
+        {items.length > 0 && (
+          <button 
+            className="btn-action btn-delete" 
+            onClick={clearAllItems}
+            style={{ padding: '4px 10px', fontSize: '12px' }}
+          >
+            Borrar Todo
+          </button>
+        )}
+      </div>
+
+      {/* Le pasamos a la lista los elementos filtrados y la función para completarlos */}
       <List 
-        items={items} 
+        items={filteredItems} 
         deleteItem={deleteItem} 
         editItem={editItem} 
+        toggleComplete={toggleComplete}
       />
     </div>
   );
